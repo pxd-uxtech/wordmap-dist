@@ -45,7 +45,17 @@ createWordmap(container, flat, { d3: window.d3, extras: { positions, c1Order, c2
 
 ## Data format
 
-A flat array of leaf items + cluster start positions:
+Wordmap renders a **3-level hierarchy** (대분류 → 소분류 → 단어):
+
+```
+c2   대분류 (top group)      e.g. "서비스 시스템"
+└─ c1   소분류 (sub-group)    e.g. "서비스 디자인 기초"
+   └─ word  단어 (leaf)       개별 단어 — 빈도(size)로 크기 결정
+```
+
+The top group (`c2`) becomes a colored cluster blob, each sub-group (`c1`) gets a hull + label inside it, and individual words are packed by frequency.
+
+Input is a **flat array of leaf items** — every word carries its own `c1`/`c2` labels — plus cluster start positions:
 
 ```js
 const flat = cellData.map(d => ({
