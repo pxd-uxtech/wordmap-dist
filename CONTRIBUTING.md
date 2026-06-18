@@ -4,25 +4,25 @@
 
 This repository contains compiled output only. All JavaScript files under `dist/` are generated automatically from the source repository.
 
-**Source repo:** [pxd-uxtech/affinitybubble-library](https://github.com/pxd-uxtech/affinitybubble-library) — `wordmap-force-library.js`
+**Source repo:** [pxd-uxtech/wordmap](https://github.com/pxd-uxtech/wordmap) — `wordmap.js`
 
 ## Correct workflow
 
-1. Make changes in the source repo (`affinitybubble-library/wordmap-force-library.js`)
+1. Make changes in the source repo (`wordmap/wordmap.js`)
 2. Build both bundles:
 
 ```
-esbuild wordmap-force-library.js --bundle --format=esm \
-  --outfile=dist/force-bubble.esm.js --platform=browser --external:d3
+esbuild wordmap.js --bundle --format=esm \
+  --outfile=dist/wordmap.esm.js --platform=browser --external:d3
 
-esbuild force-bubble.standalone.entry.js --bundle --format=esm \
-  --outfile=dist/force-bubble.standalone.js --platform=browser
+esbuild wordmap.standalone.js --bundle --format=esm \
+  --outfile=dist/wordmap.standalone.js --platform=browser
 ```
 
 3. Copy `dist/*` to this repo
 4. Commit and push
 
 ```
-affinitybubble-library  →  esbuild  →  force-bubble-dist
-     (source)                              (dist only)
+wordmap        →  esbuild  →  wordmap-dist
+  (source)                      (dist only)
 ```
