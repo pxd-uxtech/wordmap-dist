@@ -1,4 +1,4 @@
-// wordmap-force-library.js
+// wordmap.js
 var d3;
 var DEFAULT_PALETTE = [
   "#afc7dd",
@@ -169,7 +169,8 @@ var wfFmtVal = (spec, v) => spec.step < 1 ? Number(v).toFixed(2) : String(Math.r
 var STYLE_ID = "wordmap-force-style";
 var EMOJI_FONT_LINK_ID = "wordmap-force-emoji-font";
 function ensureStyle() {
-  if (typeof document === "undefined") return;
+  if (typeof document === "undefined")
+    return;
   if (!document.getElementById(EMOJI_FONT_LINK_ID)) {
     const link = document.createElement("link");
     link.id = EMOJI_FONT_LINK_ID;
@@ -177,7 +178,8 @@ function ensureStyle() {
     link.href = "https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap";
     document.head.appendChild(link);
   }
-  if (document.getElementById(STYLE_ID)) return;
+  if (document.getElementById(STYLE_ID))
+    return;
   const css = `
 .wf-host { position: relative; width: 100%; height: 100%; overflow: hidden; }
 .wf-host svg { display: block; width: 100%; height: 100%; cursor: grab; background: transparent; }
@@ -239,21 +241,26 @@ function splitEmoji(s) {
   return m ? { emoji: m[1], rest: s.slice(m[0].length) } : { emoji: "", rest: s };
 }
 var _measureCtx = (() => {
-  if (typeof document === "undefined") return null;
+  if (typeof document === "undefined")
+    return null;
   return document.createElement("canvas").getContext("2d");
 })();
 function measure(text, fs, weight, family) {
-  if (!_measureCtx) return text.length * fs * 0.6;
+  if (!_measureCtx)
+    return text.length * fs * 0.6;
   _measureCtx.font = `${weight} ${fs}px ${family}`;
   return _measureCtx.measureText(text).width;
 }
 function wrapAndTruncate(text, maxChars, maxLines, ellipsis, overflowMode, tolerance) {
-  if (!text) return [""];
+  if (!text)
+    return [""];
   const t = String(text);
-  if (t.length <= maxChars) return [t];
+  if (t.length <= maxChars)
+    return [t];
   const softMax = Math.max(maxChars, Math.ceil(maxChars * (tolerance || 1)));
   const hasSpace = /\s/.test(t);
-  if (!hasSpace && t.length <= softMax) return [t];
+  if (!hasSpace && t.length <= softMax)
+    return [t];
   const tokens = t.split(/(\s+)/).filter((s) => s.length > 0);
   const lines = [];
   let cur = "";
@@ -271,7 +278,8 @@ function wrapAndTruncate(text, maxChars, maxLines, ellipsis, overflowMode, toler
       let rest = tok;
       if (cur.length) {
         const room = maxChars - cur.length;
-        if (room > 0) cur += rest.slice(0, room);
+        if (room > 0)
+          cur += rest.slice(0, room);
         rest = rest.slice(room > 0 ? room : 0);
         flush();
       }
@@ -292,9 +300,12 @@ function wrapAndTruncate(text, maxChars, maxLines, ellipsis, overflowMode, toler
       }
     } else {
       flush();
-      if (/^\s+$/.test(tok)) continue;
-      if (tok.length <= softMax) cur = tok;
-      else cur = tok.slice(0, maxChars);
+      if (/^\s+$/.test(tok))
+        continue;
+      if (tok.length <= softMax)
+        cur = tok;
+      else
+        cur = tok.slice(0, maxChars);
     }
   }
   flush();
@@ -340,7 +351,8 @@ function rectCollide(padding, iterations) {
     for (let it = 0; it < iterations; it++) {
       const tree = d3.quadtree(nodes, (d) => d.x, (d) => d.y);
       for (const a of nodes) {
-        if (a.fx != null) continue;
+        if (a.fx != null)
+          continue;
         const ar = Math.max(a.w, a.h) / 2 + padding + 60;
         tree.visit((node, x0, y0, x1, y1) => {
           if (!node.length) {
@@ -359,12 +371,14 @@ function rectCollide(padding, iterations) {
                   if (ox < oy) {
                     const sx = dx === 0 ? Math.random() - 0.5 : dx < 0 ? -1 : 1;
                     const shift = ox * 0.5;
-                    if (b.fx == null) b.x += shift * sx;
+                    if (b.fx == null)
+                      b.x += shift * sx;
                     a.x -= shift * sx;
                   } else {
                     const sy = dy === 0 ? Math.random() - 0.5 : dy < 0 ? -1 : 1;
                     const shift = oy * 0.5;
-                    if (b.fy == null) b.y += shift * sy;
+                    if (b.fy == null)
+                      b.y += shift * sy;
                     a.y -= shift * sy;
                   }
                 }
@@ -439,10 +453,12 @@ function mergeOptions(defaults, overrides) {
 }
 var WordmapForce = class {
   constructor(container, options = {}) {
-    if (!d3) throw new Error("WordmapForce: d3 instance not available. Pass options.d3.");
+    if (!d3)
+      throw new Error("WordmapForce: d3 instance not available. Pass options.d3.");
     ensureStyle();
     const el = typeof container === "string" ? document.querySelector(container) : container;
-    if (!el) throw new Error("WordmapForce: container element not found");
+    if (!el)
+      throw new Error("WordmapForce: container element not found");
     el.classList.add("wf-host");
     this.container = el;
     this.opts = mergeOptions(DEFAULTS, options);
@@ -450,7 +466,8 @@ var WordmapForce = class {
     this._wfPanelOpen = false;
     this._applyStoredSettings();
     this._buildDOM();
-    if (this.opts.settingsPanel) this._buildSettingsPanel();
+    if (this.opts.settingsPanel)
+      this._buildSettingsPanel();
   }
   _buildDOM() {
     const { width, height, zoomable, zoomExtent } = this.opts;
@@ -469,9 +486,11 @@ var WordmapForce = class {
     }
   }
   _onZoom(k) {
-    if (Math.abs(k - this._lastZoomK) < this.opts.wordZoomRewrapEpsilon) return;
+    if (Math.abs(k - this._lastZoomK) < this.opts.wordZoomRewrapEpsilon)
+      return;
     this._lastZoomK = k;
-    if (this._wordSel) this._rerenderWordLines(k);
+    if (this._wordSel)
+      this._rerenderWordLines(k);
   }
   _rerenderWordLines(k) {
     const opts = this.opts;
@@ -503,8 +522,10 @@ var WordmapForce = class {
       for (const d of rows) {
         const k = d.c1 + "" + d.text;
         const e = agg.get(k);
-        if (e) e.size += d.size || 1;
-        else agg.set(k, { text: d.text, size: d.size || 1, c1: d.c1, c2: d.c2 });
+        if (e)
+          e.size += d.size || 1;
+        else
+          agg.set(k, { text: d.text, size: d.size || 1, c1: d.c1, c2: d.c2 });
       }
       rows = [...agg.values()];
     }
@@ -515,7 +536,8 @@ var WordmapForce = class {
     const c1ToC2 = /* @__PURE__ */ new Map();
     for (const r of rows) {
       const ci = c1Index.get(r.c1);
-      if (!c1ToC2.has(ci)) c1ToC2.set(ci, c2Index.get(r.c2));
+      if (!c1ToC2.has(ci))
+        c1ToC2.set(ci, c2Index.get(r.c2));
     }
     const c1Anchor = this._computeAnchors(c1Set, c2Set, c1ToC2, extras.positions);
     const baseColors = opts.palette;
@@ -527,7 +549,8 @@ var WordmapForce = class {
     const customC1 = extras.colors?.c1 ?? null;
     const customC2 = extras.colors?.c2 ?? null;
     const customLookup = (src, key, idx) => {
-      if (src == null) return null;
+      if (src == null)
+        return null;
       if (typeof src === "function") {
         const v = src(key, idx);
         return v == null ? null : v;
@@ -541,26 +564,34 @@ var WordmapForce = class {
     const c1FillByCi = c1Set.map((label, ci) => {
       const cj = c1ToC2.get(ci);
       const cu1 = customLookup(customC1, label, ci);
-      if (cu1 != null) return cu1;
+      if (cu1 != null)
+        return cu1;
       if (cj != null) {
         const cu2 = customLookup(customC2, c2Set[cj], cj);
-        if (cu2 != null) return cu2;
+        if (cu2 != null)
+          return cu2;
       }
       if (sentScale) {
         let s = scoreC1 ? scoreC1[label] : null;
-        if (s == null && cj != null && scoreC2) s = scoreC2[c2Set[cj]];
-        if (s == null && sentFallback != null) s = sentFallback;
-        if (s != null) return sentScale(s);
+        if (s == null && cj != null && scoreC2)
+          s = scoreC2[c2Set[cj]];
+        if (s == null && sentFallback != null)
+          s = sentFallback;
+        if (s != null)
+          return sentScale(s);
       }
       return baseColors[((cj ?? ci) % baseColors.length + baseColors.length) % baseColors.length];
     });
     const c2FillByCj = c2Set.map((label, cj) => {
       const cu2 = customLookup(customC2, label, cj);
-      if (cu2 != null) return cu2;
+      if (cu2 != null)
+        return cu2;
       if (sentScale) {
         let s = scoreC2 ? scoreC2[label] : null;
-        if (s == null && sentFallback != null) s = sentFallback;
-        if (s != null) return sentScale(s);
+        if (s == null && sentFallback != null)
+          s = sentFallback;
+        if (s != null)
+          return sentScale(s);
       }
       return baseColors[(cj % baseColors.length + baseColors.length) % baseColors.length];
     });
@@ -612,8 +643,10 @@ var WordmapForce = class {
     c1Anchor.c1Pos.forEach((p, ci) => {
       const cj = c1ToC2.get(ci);
       const c2P = c1Anchor.c2Abs.get(cj);
-      if (!c2P) return;
-      if (!childByC2.has(cj)) childByC2.set(cj, []);
+      if (!c2P)
+        return;
+      if (!childByC2.has(cj))
+        childByC2.set(cj, []);
       childByC2.get(cj).push({ ci, dx: p.x - c2P.x, dy: p.y - c2P.y });
     });
     childByC2.forEach((list, cj) => {
@@ -631,7 +664,8 @@ var WordmapForce = class {
       });
       const c2AnchorStr = +opts.clusterC2CollideAnchor || 0;
       const c2Sim = d3.forceSimulation(c2Nodes2).force("anchorX", d3.forceX((d) => d.tx).strength(c2AnchorStr)).force("anchorY", d3.forceY((d) => d.ty).strength(c2AnchorStr)).force("collide", d3.forceCollide((d) => d.r + (opts.clusterC2CollidePad || 0)).iterations(4).strength(c2CollideStrength)).stop();
-      for (let i = 0; i < (opts.clusterC2CollideTicks || 200); i++) c2Sim.tick();
+      for (let i = 0; i < (opts.clusterC2CollideTicks || 200); i++)
+        c2Sim.tick();
       const compact = +opts.clusterC2Compact || 0;
       if (compact > 0 && c2Nodes2.length > 1) {
         let cx = 0, cy = 0;
@@ -650,10 +684,14 @@ var WordmapForce = class {
       if (stretch > 0 && c2Nodes2.length > 1) {
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         for (const n of c2Nodes2) {
-          if (n.x < minX) minX = n.x;
-          if (n.x > maxX) maxX = n.x;
-          if (n.y < minY) minY = n.y;
-          if (n.y > maxY) maxY = n.y;
+          if (n.x < minX)
+            minX = n.x;
+          if (n.x > maxX)
+            maxX = n.x;
+          if (n.y < minY)
+            minY = n.y;
+          if (n.y > maxY)
+            maxY = n.y;
         }
         const curW = Math.max(1, maxX - minX), curH = Math.max(1, maxY - minY);
         const Mr = opts.margin || { left: 0, right: 0, top: 0, bottom: 0 };
@@ -674,17 +712,20 @@ var WordmapForce = class {
         const dx = n.x - n.tx, dy = n.y - n.ty;
         c1Anchor.c2Abs.set(n.cj, { x: n.x, y: n.y });
         const list = childByC2.get(n.cj);
-        if (!list) continue;
+        if (!list)
+          continue;
         for (const ch of list) {
           const cur = c1Anchor.c1Pos.get(ch.ci);
-          if (cur) c1Anchor.c1Pos.set(ch.ci, { x: cur.x + dx, y: cur.y + dy });
+          if (cur)
+            c1Anchor.c1Pos.set(ch.ci, { x: cur.x + dx, y: cur.y + dy });
         }
       }
     }
     if (discFactor > 0) {
       childByC2.forEach((list, cj) => {
         const c2P = c1Anchor.c2Abs.get(cj);
-        if (!c2P) return;
+        if (!c2P)
+          return;
         const discR = c2DiscR.get(cj);
         const recalc = list.map((d) => {
           const cur = c1Anchor.c1Pos.get(d.ci);
@@ -718,9 +759,11 @@ var WordmapForce = class {
       });
     });
     const clusterSim = d3.forceSimulation(clusterNodes).force("semantic", d3.forceX((d) => d.tx).strength(opts.clusterSemantic)).force("semanticY", d3.forceY((d) => d.ty).strength(opts.clusterSemantic)).force("cohesion", d3.forceX((d) => c2AbsX.get(d.c2) ?? d.tx).strength(opts.clusterCohesion)).force("cohesionY", d3.forceY((d) => c2AbsY.get(d.c2) ?? d.ty).strength(opts.clusterCohesion)).force("collide", d3.forceCollide((d) => d.r + opts.clusterCollidePad).iterations(4)).stop();
-    for (let i = 0; i < opts.clusterPreTicks; i++) clusterSim.tick();
+    for (let i = 0; i < opts.clusterPreTicks; i++)
+      clusterSim.tick();
     const c1Center = /* @__PURE__ */ new Map();
-    for (const n of clusterNodes) c1Center.set(n.c1, { x: n.x, y: n.y, r: n.r });
+    for (const n of clusterNodes)
+      c1Center.set(n.c1, { x: n.x, y: n.y, r: n.r });
     const wordNodes = rows.map((d) => {
       const ci = c1Index.get(d.c1);
       const fs = fontScale(d.size || 1);
@@ -754,7 +797,8 @@ var WordmapForce = class {
     const GOLDEN = Math.PI * (3 - Math.sqrt(5));
     wordsByC1.forEach((items, ci) => {
       const c = c1Center.get(ci);
-      if (!c) return;
+      if (!c)
+        return;
       items.sort((a, b) => b.size - a.size);
       const N = items.length;
       items.forEach((n, i) => {
@@ -774,7 +818,8 @@ var WordmapForce = class {
       c1Value.set(ci, v);
       totalValue += v;
     });
-    if (totalValue <= 0) totalValue = 1;
+    if (totalValue <= 0)
+      totalValue = 1;
     const c1FsByCi = /* @__PURE__ */ new Map();
     const labelNodes = [];
     c1Center.forEach((c, ci) => {
@@ -845,16 +890,20 @@ var WordmapForce = class {
         sy += ch.c.y * cnt;
         sw += cnt;
       }
-      if (sw === 0) return;
+      if (sw === 0)
+        return;
       const meta = c2Meta.get(ci);
-      if (!meta) return;
+      if (!meta)
+        return;
       const c2value = children.reduce((a, ch) => a + (c1Value.get(ch.c1) || 0), 0);
       const c2ratio = Math.max(0.2, Math.min(30, c2value / totalValue * 100));
       let fs = Math.round((opts.c2FontBase || 35) * labelScale(c2ratio) * (opts.c2OverC1Mul || 1.15));
       const childC1Fs = children.map((ch) => c1FsByCi.get(ch.c1) || 0);
       const maxC1Fs = childC1Fs.length ? Math.max(...childC1Fs) : 0;
-      if (maxC1Fs > 0) fs = Math.max(fs, Math.round(maxC1Fs * (opts.c2FontFloorMul || 1.1)));
-      if (c2HierFloor > 0) fs = Math.max(fs, c2HierFloor);
+      if (maxC1Fs > 0)
+        fs = Math.max(fs, Math.round(maxC1Fs * (opts.c2FontFloorMul || 1.1)));
+      if (c2HierFloor > 0)
+        fs = Math.max(fs, c2HierFloor);
       const mcp = opts.c2CharsPerLine || Math.max(5, Math.round(fs * 0.32 + 2));
       const ml = opts.c2MaxLines;
       const lines = wrapAndTruncate(meta.rest, mcp, ml, opts.wordEllipsis, opts.wordOverflowMode, opts.wordOverflowTolerance);
@@ -900,16 +949,21 @@ var WordmapForce = class {
     const wordsByC2 = /* @__PURE__ */ new Map();
     for (const [ci, words] of wordsByC1.entries()) {
       const cj = c1ToC2.get(ci);
-      if (cj == null) continue;
-      if (!wordsByC2.has(cj)) wordsByC2.set(cj, []);
+      if (cj == null)
+        continue;
+      if (!wordsByC2.has(cj))
+        wordsByC2.set(cj, []);
       const arr = wordsByC2.get(cj);
-      for (const w of words) arr.push(w);
+      for (const w of words)
+        arr.push(w);
     }
     const updateAnchors = () => {
       for (const [ci, words] of wordsByC1.entries()) {
-        if (!words.length) continue;
+        if (!words.length)
+          continue;
         const label = labelByCi.get(ci);
-        if (!label || label.fx != null) continue;
+        if (!label || label.fx != null)
+          continue;
         let sx = 0, sy = 0;
         for (const w of words) {
           sx += w.x;
@@ -920,15 +974,18 @@ var WordmapForce = class {
       }
       const c2Pos = opts.c2Position || "top";
       for (const [cj, words] of wordsByC2.entries()) {
-        if (!words.length) continue;
+        if (!words.length)
+          continue;
         const c2node = c2NodeByCj.get(cj);
-        if (!c2node || c2node.fx != null) continue;
+        if (!c2node || c2node.fx != null)
+          continue;
         let sx = 0, sy = 0, minY = Infinity;
         for (const w of words) {
           sx += w.x;
           sy += w.y;
           const wy = w.y - (w.h || 0) / 2;
-          if (wy < minY) minY = wy;
+          if (wy < minY)
+            minY = wy;
         }
         c2node.cx = sx / words.length;
         if (c2Pos === "top") {
@@ -943,20 +1000,24 @@ var WordmapForce = class {
     const phase1 = Math.floor(preTicks * 0.5);
     const phase2 = Math.floor(preTicks * 0.3);
     const phase3 = preTicks - phase1 - phase2;
-    for (let i = 0; i < phase1; i++) sim.tick();
+    for (let i = 0; i < phase1; i++)
+      sim.tick();
     updateAnchors();
     sim.alpha(0.6);
-    for (let i = 0; i < phase2; i++) sim.tick();
+    for (let i = 0; i < phase2; i++)
+      sim.tick();
     updateAnchors();
     sim.alpha(0.3);
-    for (let i = 0; i < phase3; i++) sim.tick();
+    for (let i = 0; i < phase3; i++)
+      sim.tick();
     const drawHulls = () => {
       const hullData = [];
       for (const [ci, items] of wordsByC1.entries()) {
         const cj = c1ToC2.get(ci);
         const all = items.slice();
         const lbl = labelByCi.get(ci);
-        if (lbl) all.push(lbl);
+        if (lbl)
+          all.push(lbl);
         hullData.push({
           c1: ci,
           c2: cj,
@@ -1016,20 +1077,23 @@ var WordmapForce = class {
       wordSel.attr("transform", (d) => `translate(${d.x},${d.y})`);
       c1Sel.attr("transform", (d) => `translate(${d.x},${d.y})`);
       c2Sel.attr("transform", (d) => `translate(${d.x},${d.y})`);
-      if (sim.alpha() > 0.05) drawHulls();
+      if (sim.alpha() > 0.05)
+        drawHulls();
     };
     sim.on("tick", ticked);
     sim.alpha(0).restart();
     if (opts.draggable) {
       const drag = d3.drag().on("start", (event, d) => {
-        if (!event.active) sim.alphaTarget(0.4).restart();
+        if (!event.active)
+          sim.alphaTarget(0.4).restart();
         d.fx = d.x;
         d.fy = d.y;
       }).on("drag", (event, d) => {
         d.fx = event.x;
         d.fy = event.y;
       }).on("end", (event, d) => {
-        if (!event.active) sim.alphaTarget(0);
+        if (!event.active)
+          sim.alphaTarget(0);
         d.fx = null;
         d.fy = null;
       });
@@ -1046,25 +1110,33 @@ var WordmapForce = class {
       labelNodes,
       c2Nodes
     };
-    if (opts.fitToContent) this.fitToContent();
+    if (opts.fitToContent)
+      this.fitToContent();
     return this;
   }
   fitToContent(padding) {
-    if (!this.zoomBehavior || !this.svg || !this.state) return;
+    if (!this.zoomBehavior || !this.svg || !this.state)
+      return;
     const { wordNodes, labelNodes, c2Nodes } = this.state;
     const all = [...wordNodes || [], ...labelNodes || [], ...c2Nodes || []];
-    if (!all.length) return;
+    if (!all.length)
+      return;
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const n of all) {
       const halfW = (n.w || 0) / 2;
       const halfH = (n.h || 0) / 2;
-      if (n.x - halfW < minX) minX = n.x - halfW;
-      if (n.y - halfH < minY) minY = n.y - halfH;
-      if (n.x + halfW > maxX) maxX = n.x + halfW;
-      if (n.y + halfH > maxY) maxY = n.y + halfH;
+      if (n.x - halfW < minX)
+        minX = n.x - halfW;
+      if (n.y - halfH < minY)
+        minY = n.y - halfH;
+      if (n.x + halfW > maxX)
+        maxX = n.x + halfW;
+      if (n.y + halfH > maxY)
+        maxY = n.y + halfH;
     }
     const W = this.opts.width, H = this.opts.height;
-    if (padding == null) padding = Math.max(60, Math.min(W, H) * 0.06);
+    if (padding == null)
+      padding = Math.max(60, Math.min(W, H) * 0.06);
     const hullExtra = (this.opts.hullInflate || 0) + (this.opts.hullInnerPad || 0);
     const totalPad = padding + hullExtra;
     minX -= totalPad;
@@ -1072,7 +1144,8 @@ var WordmapForce = class {
     maxX += totalPad;
     maxY += totalPad;
     const bw = maxX - minX, bh = maxY - minY;
-    if (bw <= 0 || bh <= 0) return;
+    if (bw <= 0 || bh <= 0)
+      return;
     const fit = Math.min(W / bw, H / bh);
     const [zMin, zMax] = this.opts.zoomExtent;
     if (fit < zMin) {
@@ -1100,13 +1173,15 @@ var WordmapForce = class {
       if (positions.c2) {
         for (const [name, p] of Object.entries(positions.c2)) {
           const i = c2Set.indexOf(name);
-          if (i >= 0) c2Pos.set(i, p);
+          if (i >= 0)
+            c2Pos.set(i, p);
         }
       }
       if (positions.c1) {
         for (const [name, p] of Object.entries(positions.c1)) {
           const i = c1Set.indexOf(name);
-          if (i >= 0) c1Pos.set(i, p);
+          if (i >= 0)
+            c1Pos.set(i, p);
         }
       }
     }
@@ -1133,7 +1208,8 @@ var WordmapForce = class {
       const childByC2 = /* @__PURE__ */ new Map();
       c1Pos.forEach((p, ci) => {
         const cj = c1ToC2.get(ci);
-        if (!childByC2.has(cj)) childByC2.set(cj, []);
+        if (!childByC2.has(cj))
+          childByC2.set(cj, []);
         childByC2.get(cj).push({ ci, p });
       });
       const c2Centroid = /* @__PURE__ */ new Map();
@@ -1185,7 +1261,8 @@ var WordmapForce = class {
   // ===== 설정 패널 (settingsPanel:true) =====
   _loadSettings() {
     const key = this.opts.settingsStorageKey;
-    if (!key || typeof localStorage === "undefined") return {};
+    if (!key || typeof localStorage === "undefined")
+      return {};
     try {
       return JSON.parse(localStorage.getItem(key)) || {};
     } catch (e) {
@@ -1194,24 +1271,28 @@ var WordmapForce = class {
   }
   _saveSettings(s) {
     const key = this.opts.settingsStorageKey;
-    if (!key || typeof localStorage === "undefined") return;
+    if (!key || typeof localStorage === "undefined")
+      return;
     try {
       localStorage.setItem(key, JSON.stringify(s));
     } catch (e) {
     }
   }
   _applyStoredSettings() {
-    if (!this.opts.settingsPanel) return;
+    if (!this.opts.settingsPanel)
+      return;
     const s = this._loadSettings();
     for (const spec of WF_SETTINGS_SLIDERS) {
       const raw = s[spec.key];
       const v = Number(raw);
-      if (raw == null || raw === "" || !Number.isFinite(v)) continue;
+      if (raw == null || raw === "" || !Number.isFinite(v))
+        continue;
       this.opts[spec.opt] = spec.xy ? { x: v, y: v } : v;
     }
   }
   _buildSettingsPanel() {
-    if (typeof document === "undefined") return;
+    if (typeof document === "undefined")
+      return;
     const s = this._loadSettings();
     const sliders = WF_SETTINGS_SLIDERS.map((spec) => {
       const raw = s[spec.key];
@@ -1232,7 +1313,8 @@ var WordmapForce = class {
         <div class="wf-settings-body">${sliders}<button type="button" class="wf-settings-reset">\uCD08\uAE30\uD654</button></div>
       </div>`;
     this._wfPanel = wrap;
-    while (wrap.firstChild) this.container.appendChild(wrap.firstChild);
+    while (wrap.firstChild)
+      this.container.appendChild(wrap.firstChild);
     const toggle = this.container.querySelector(".wf-settings-toggle");
     const panel = this.container.querySelector(".wf-settings-panel");
     this._wfPanelEl = panel;
@@ -1246,7 +1328,8 @@ var WordmapForce = class {
     });
     panel.querySelector(".wf-settings-reset").addEventListener("click", () => {
       this._saveSettings({});
-      for (const spec of WF_SETTINGS_SLIDERS) this.opts[spec.opt] = spec.xy ? { x: spec.def, y: spec.def } : spec.def;
+      for (const spec of WF_SETTINGS_SLIDERS)
+        this.opts[spec.opt] = spec.xy ? { x: spec.def, y: spec.def } : spec.def;
       panel.querySelectorAll("input[type=range]").forEach((inp) => {
         const spec = WF_SETTINGS_SLIDERS.find((x) => x.key === inp.dataset.wfKey);
         inp.value = spec.def;
@@ -1259,12 +1342,14 @@ var WordmapForce = class {
       input.addEventListener("input", () => {
         const spec = specMap.get(input.dataset.wfKey);
         const valEl = input.parentElement.querySelector(".wf-val");
-        if (valEl) valEl.textContent = wfFmtVal(spec, input.value);
+        if (valEl)
+          valEl.textContent = wfFmtVal(spec, input.value);
         clearTimeout(this._wfDebounce);
         this._wfDebounce = setTimeout(() => {
           const store = this._loadSettings();
           const n = Number(input.value);
-          if (Number.isFinite(n)) store[spec.key] = n;
+          if (Number.isFinite(n))
+            store[spec.key] = n;
           this._saveSettings(store);
           this.opts[spec.opt] = spec.xy ? { x: n, y: n } : n;
           this._rerenderFromSettings();
@@ -1273,31 +1358,41 @@ var WordmapForce = class {
     });
   }
   _rerenderFromSettings() {
-    if (this._sim) this._sim.stop();
-    if (this.svg) this.svg.remove();
+    if (this._sim)
+      this._sim.stop();
+    if (this.svg)
+      this.svg.remove();
     this._buildDOM();
     this.render(this._lastData, this._lastExtras);
   }
   destroy() {
-    if (this._sim) this._sim.stop();
-    if (this.svg) this.svg.remove();
-    if (this._wfPanelEl) this._wfPanelEl.remove();
+    if (this._sim)
+      this._sim.stop();
+    if (this.svg)
+      this.svg.remove();
+    if (this._wfPanelEl)
+      this._wfPanelEl.remove();
     const tg = this.container.querySelector(".wf-settings-toggle");
-    if (tg) tg.remove();
+    if (tg)
+      tg.remove();
     this.container.classList.remove("wf-host");
     this.state = null;
   }
 };
 function createForceBubble(container, data, options = {}) {
   d3 = options.d3 || typeof globalThis !== "undefined" && globalThis.d3 || typeof window !== "undefined" && window.d3;
-  if (!d3) throw new Error("createForceBubble: d3 v7 instance required (pass options.d3).");
+  if (!d3)
+    throw new Error("createForceBubble: d3 v7 instance required (pass options.d3).");
   const chart = new WordmapForce(container, options);
-  if (data) chart.render(data, options.extras || {});
+  if (data)
+    chart.render(data, options.extras || {});
   return chart;
 }
-var wordmap_force_library_default = createForceBubble;
+var createWordmap = createForceBubble;
+var wordmap_default = createForceBubble;
 export {
   WordmapForce,
   createForceBubble,
-  wordmap_force_library_default as default
+  createWordmap,
+  wordmap_default as default
 };
