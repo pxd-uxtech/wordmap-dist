@@ -18298,18 +18298,36 @@ var DEFAULTS = {
   // ===== 설정 패널 (옵션으로 내장) =====
   settingsPanel: false,
   // true → 차트 우상단 톱니 아이콘 + 슬라이드 설정 패널. 슬라이더 조정 시 자체 재렌더
-  settingsStorageKey: "wf:settings:v2"
-  // 슬라이더 값 localStorage 키 (null이면 저장 안 함)
+  settingsStorageKey: "wf:settings:v3"
+  // 슬라이더 값 localStorage 키 (null이면 저장 안 함). v3 = 의미축 3슬라이더
 };
+var wfLerp = (a4, b, t) => a4 + (b - a4) * (t / 100);
 var WF_SETTINGS_SLIDERS = [
-  { key: "cohesion", opt: "clusterCohesion", label: "c1 \uC751\uC9D1\uB825", hint: "c1 \u2192 c2 \uC911\uC2EC \uB04C\uB9BC", min: 0, max: 1, step: 0.01, def: 0.08 },
-  { key: "c1Pad", opt: "clusterCollidePad", label: "c1 \uAC04\uACA9", hint: "1\uCC28 \uD074\uB7EC\uC2A4\uD130 \uC0AC\uC774", min: 0, max: 60, step: 1, def: 14 },
-  { key: "c2Pad", opt: "clusterC2CollidePad", label: "c2 \uAC04\uACA9", hint: "2\uCC28 \uD074\uB7EC\uC2A4\uD130 \uC0AC\uC774", min: 0, max: 60, step: 1, def: 0 },
-  { key: "c2Area", opt: "clusterPad", label: "c2 \uC601\uC5ED", hint: "2\uCC28 \uD074\uB7EC\uC2A4\uD130 \uC601\uC5ED \uD06C\uAE30", min: 0, max: 400, step: 1, def: 220, xy: true },
-  { key: "c2Compact", opt: "clusterC2Compact", label: "c2 \uC751\uC9D1", hint: "c2 \uC911\uC2EC\uC73C\uB85C \uBAA8\uC74C", min: 0, max: 2, step: 0.05, def: 0.25 },
-  { key: "c2Collide", opt: "clusterC2Collide", label: "c2 \uBD84\uB9AC", hint: "c2\uB07C\uB9AC \uCDA9\uB3CC", min: 0, max: 1, step: 0.05, def: 0.2 }
+  {
+    key: "density",
+    label: "\uB2E8\uC5B4 \uBE7D\uBE7D\uD568",
+    left: "\uC5EC\uC720\uB86D\uAC8C",
+    right: "\uCD18\uCD18\uD558\uAC8C",
+    def: 50,
+    map: (t) => ({ clusterCohesion: wfLerp(0.02, 0.14, t), clusterCollidePad: wfLerp(24, 4, t) })
+  },
+  {
+    key: "separation",
+    label: "\uADF8\uB8F9 \uB610\uB837\uD568",
+    left: "\uC11E\uC774\uAC8C",
+    right: "\uB610\uB837\uD558\uAC8C",
+    def: 50,
+    map: (t) => ({ clusterC2Collide: wfLerp(0, 0.4, t), clusterC2CollidePad: wfLerp(-16, 16, t) })
+  },
+  {
+    key: "spread",
+    label: "\uD3BC\uCE68 \uC815\uB3C4",
+    left: "\uBAA8\uC544\uC11C",
+    right: "\uD3BC\uCCD0\uC11C",
+    def: 50,
+    map: (t) => ({ clusterPad: { x: wfLerp(120, 320, t), y: wfLerp(120, 320, t) }, clusterC2Compact: wfLerp(0.5, 0, t) })
+  }
 ];
-var wfFmtVal = (spec, v2) => spec.step < 1 ? Number(v2).toFixed(2) : String(Math.round(Number(v2)));
 var STYLE_ID = "wordmap-force-style";
 var EMOJI_FONT_LINK_ID = "wordmap-force-emoji-font";
 function ensureStyle() {
@@ -18349,6 +18367,7 @@ function ensureStyle() {
 .wf-field-slider input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;background:#e5e7eb;border-radius:2px;outline:none;margin:0;padding:0}
 .wf-field-slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;background:#3b82f6;border:2px solid #fff;border-radius:50%;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .wf-field-slider input[type=range]::-moz-range-thumb{width:16px;height:16px;background:#3b82f6;border:2px solid #fff;border-radius:50%;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.wf-slider-ends{display:flex;justify-content:space-between;margin-top:5px;color:#9ca3af;font-size:11px}
 .wf-c1-label-g { cursor: grab; user-select: none; }
 .wf-c1-label-g:active { cursor: grabbing; }
 .wf-c1-label {
@@ -19431,7 +19450,7 @@ var WordmapForce = class {
       const v2 = Number(raw);
       if (raw == null || raw === "" || !Number.isFinite(v2))
         continue;
-      this.opts[spec.opt] = spec.xy ? { x: v2, y: v2 } : v2;
+      Object.assign(this.opts, spec.map(v2));
     }
   }
   _buildSettingsPanel() {
@@ -19441,7 +19460,7 @@ var WordmapForce = class {
     const sliders = WF_SETTINGS_SLIDERS.map((spec) => {
       const raw = s2[spec.key];
       const cur = raw != null && Number.isFinite(Number(raw)) ? Number(raw) : spec.def;
-      return `<div class="wf-field-slider"><div class="wf-slider-head"><span>${spec.label}<small>${spec.hint}</small></span><span class="wf-val">${wfFmtVal(spec, cur)}</span></div><input type="range" data-wf-key="${spec.key}" min="${spec.min}" max="${spec.max}" step="${spec.step}" value="${cur}" /></div>`;
+      return `<div class="wf-field-slider"><div class="wf-slider-head"><span>${spec.label}</span></div><input type="range" data-wf-key="${spec.key}" min="0" max="100" step="1" value="${cur}" /><div class="wf-slider-ends"><small>${spec.left}</small><small>${spec.right}</small></div></div>`;
     }).join("");
     const wrap = document.createElement("div");
     wrap.innerHTML = `
@@ -19473,11 +19492,10 @@ var WordmapForce = class {
     panel.querySelector(".wf-settings-reset").addEventListener("click", () => {
       this._saveSettings({});
       for (const spec of WF_SETTINGS_SLIDERS)
-        this.opts[spec.opt] = spec.xy ? { x: spec.def, y: spec.def } : spec.def;
+        Object.assign(this.opts, spec.map(spec.def));
       panel.querySelectorAll("input[type=range]").forEach((inp) => {
         const spec = WF_SETTINGS_SLIDERS.find((x4) => x4.key === inp.dataset.wfKey);
         inp.value = spec.def;
-        inp.parentElement.querySelector(".wf-val").textContent = wfFmtVal(spec, spec.def);
       });
       this._rerenderFromSettings();
     });
@@ -19485,9 +19503,6 @@ var WordmapForce = class {
     panel.querySelectorAll("input[type=range][data-wf-key]").forEach((input) => {
       input.addEventListener("input", () => {
         const spec = specMap.get(input.dataset.wfKey);
-        const valEl = input.parentElement.querySelector(".wf-val");
-        if (valEl)
-          valEl.textContent = wfFmtVal(spec, input.value);
         clearTimeout(this._wfDebounce);
         this._wfDebounce = setTimeout(() => {
           const store = this._loadSettings();
@@ -19495,7 +19510,7 @@ var WordmapForce = class {
           if (Number.isFinite(n))
             store[spec.key] = n;
           this._saveSettings(store);
-          this.opts[spec.opt] = spec.xy ? { x: n, y: n } : n;
+          Object.assign(this.opts, spec.map(n));
           this._rerenderFromSettings();
         }, 400);
       });

@@ -79,7 +79,7 @@ Call `chart.destroy()` before re-rendering. Sentiment coloring:
 
 ## Built-in settings panel
 
-Pass `settingsPanel: true` to embed a gear icon + slide-in panel with 6 live sliders. Changes debounce (400ms) → `localStorage` → self-rerender.
+Pass `settingsPanel: true` to embed a gear icon + slide-in panel with **3 plain-language sliders**. Each slider expresses an *outcome* (not a force variable) and drives several internal options at once. The middle (50%) reproduces the library defaults. Changes debounce (400ms) → `localStorage` → self-rerender.
 
 ```js
 createWordmap(container, flat, {
@@ -88,14 +88,13 @@ createWordmap(container, flat, {
 });
 ```
 
-| Slider | Option | Default |
+| 슬라이더 | 의미 (왼쪽 ↔ 오른쪽) | 내부적으로 조정하는 옵션 |
 |---|---|---|
-| c1 응집력 | `clusterCohesion` | 0.08 |
-| c1 간격 | `clusterCollidePad` | 14 |
-| c2 간격 | `clusterC2CollidePad` | 0 |
-| c2 영역 | `clusterPad {x,y}` | 220 |
-| c2 응집 | `clusterC2Compact` | 0.25 |
-| c2 분리 | `clusterC2Collide` | 0.2 |
+| **단어 빽빽함** | 여유롭게 ↔ 촘촘하게 | `clusterCohesion` + `clusterCollidePad` |
+| **그룹 또렷함** | 섞이게 ↔ 또렷하게 | `clusterC2Collide` + `clusterC2CollidePad` |
+| **펼침 정도** | 모아서 ↔ 펼쳐서 | `clusterPad` + `clusterC2Compact` |
+
+> 슬라이더는 비전문가도 결과를 보고 조정할 수 있도록 의미 축으로 묶여 있습니다. 개별 force 변수를 직접 세팅하려면 위 옵션을 `createWordmap(...)` 호출에 직접 넘기면 됩니다.
 
 ## Key options
 
