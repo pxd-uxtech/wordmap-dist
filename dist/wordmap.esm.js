@@ -1252,6 +1252,7 @@ var WordmapForce = class {
         });
       });
     } else {
+      const GOLDEN = Math.PI * (3 - Math.sqrt(5));
       const c2ChildCount = /* @__PURE__ */ new Map();
       c1ToC2.forEach((cj) => c2ChildCount.set(cj, (c2ChildCount.get(cj) || 0) + 1));
       const c2ChildIdx = /* @__PURE__ */ new Map();
@@ -1260,9 +1261,13 @@ var WordmapForce = class {
         const N = c2ChildCount.get(cj);
         const idx = c2ChildIdx.get(cj) || 0;
         c2ChildIdx.set(cj, idx + 1);
-        const ang = idx / N * Math.PI * 2;
-        const rad = 80;
         const c2P = c2Abs.get(cj) || { x: W / 2, y: H / 2 };
+        if (N <= 1) {
+          c1AnchorMap.set(ci, { x: c2P.x, y: c2P.y });
+          return;
+        }
+        const ang = idx * GOLDEN;
+        const rad = 80 * Math.sqrt((idx + 0.5) / N);
         c1AnchorMap.set(ci, {
           x: c2P.x + Math.cos(ang) * rad,
           y: c2P.y + Math.sin(ang) * rad
